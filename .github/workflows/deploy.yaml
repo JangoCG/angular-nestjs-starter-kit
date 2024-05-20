@@ -5,13 +5,11 @@ on:
     branches: [main]
 
 jobs:
-  prepare:
+  build-and-deploy-frontend:
     runs-on: ubuntu-latest
-    outputs:
-      code: ${{ steps.checkout.outputs.sha }}
+
     steps:
       - name: Checkout code
-        id: checkout
         uses: actions/checkout@v2
 
       - name: Login to GitHub Container Registry
@@ -21,11 +19,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-  build-and-push-frontend:
-    runs-on: ubuntu-latest
-    needs: prepare
-    steps:
-      - name: Docker meta for frontend
+      - name: Docker meta
         id: meta-frontend
         uses: docker/metadata-action@v4
         with:
@@ -40,14 +34,23 @@ jobs:
           push: true
           tags: ${{ steps.meta-frontend.outputs.tags }}
 
-  build-and-push-backend:
-    runs-on: ubuntu-latest
-    needs: prepare
-    steps:
-      - name: Use prepared code
-        run: echo "Using code checked out in the prepare stage"
 
-      - name: Docker meta for backend
+  build-and-deploy-backend:
+    runs-on: ubuntu-latest
+    needs: build-and-deploy-frontend
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Docker meta
         id: meta-backend
         uses: docker/metadata-action@v4
         with:
@@ -61,4 +64,3 @@ jobs:
           file: ./backend/Dockerfile
           push: true
           tags: ${{ steps.meta-backend.outputs.tags }}
-
