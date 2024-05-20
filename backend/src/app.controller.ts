@@ -1,5 +1,6 @@
 import { Controller, Get } from '@nestjs/common';
 import { AppService } from './app.service';
+import { UserDto } from '@shared/dto/user.dto';
 
 @Controller()
 export class AppController {
@@ -7,7 +8,12 @@ export class AppController {
 
   @Get()
   getHello(): string {
-    const user: UserDto;
+    const user: UserDto = {
+      id: 1,
+      name: 'John Doe',
+      email: 'sds',
+    };
+    console.log(user);
     return this.appService.getHello();
   }
 }
